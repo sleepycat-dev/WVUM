@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">WVUMPlayer</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="Play">PLAY</string>
+    <string name="Stop">STOP</string>
     <string name="action_settings">Settings</string>
 </resources>
