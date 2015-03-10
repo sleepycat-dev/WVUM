@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,6 +43,10 @@ public class MainActivity extends ActionBarActivity
     //data
     private String m_sMetaDataStart;
     private String m_sMetaDataEnd;
+    private String m_sSHOUTCastLink;
+    private String m_sMetaDataLink;
+    //how long between asynctask calls in milliseconds
+    private int m_nPollTime;
     private boolean m_bIsReady;
     //objects
     private MediaPlayer m_WVUMStream;
@@ -49,7 +54,8 @@ public class MainActivity extends ActionBarActivity
     private ImageButton m_StopButton;
     private songTextView m_SongDisplayLabel;
     private songInfoStore m_SongData;
-    Timer m_PollStation;
+    private Handler m_TimerHandler;
+    private Runnable m_TimerRunnable;
 
 
     //methods
@@ -62,16 +68,29 @@ public class MainActivity extends ActionBarActivity
         //initialize member variables
         m_sMetaDataStart = "<font face=\"calibri\"><!--includeThisInApp-->";
         m_sMetaDataEnd = "</body></html></font>";
+        m_sSHOUTCastLink = "http://wvum.org:9010/";
+        m_sMetaDataLink = "http://wvum.org/index.php/wvum/stream/";
         m_SongData = new songInfoStore("");
+        m_nPollTime = 30000;
         m_bIsReady = false;
-        m_PollStation = new Timer();
+        m_TimerHandler = null;
+        m_TimerRunnable = null;
+        m_WVUMStream = null;
 
-        //initialize streams
-        initAudioStream();
-        //m_PollStation(runAsyncTask, 3000, 1500);
-        new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
-
+        if(isNetworkAvailable())
+        {
+            //initialize streams
+            initAudioStream();
+            initTimer();
+        }
+        else
+            Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG);
         //initialize GUI elements
+        initGUI();
+    }
+
+    private void initGUI()
+    {
         m_PlayButton = (ImageButton)findViewById(R.id.playButton);
         m_StopButton = (ImageButton)findViewById(R.id.stopButton);
         m_SongDisplayLabel = (songTextView)findViewById(R.id.songDataLabel);
@@ -83,14 +102,14 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
-                if(m_bIsReady)
+                if(m_bIsReady && m_WVUMStream != null)
                 {
                     if (isNetworkAvailable())
                     {
                         m_WVUMStream.start();
                     }
                     else
-                        Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again", Toast.LENGTH_LONG);
+                        Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again.", Toast.LENGTH_LONG);
                 }
                 else
                     Log.d("m_PlayButton", "STREAM NOT READY");
@@ -101,7 +120,8 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
-                m_WVUMStream.stop();
+                if(m_WVUMStream != null)
+                    m_WVUMStream.stop();
             }
         });
     }
@@ -111,8 +131,7 @@ public class MainActivity extends ActionBarActivity
         if(isNetworkAvailable())
         {
             //Address of wvum stream. Parse into uri and hand to media player
-            String sAddr = "http://wvum.org:9010/";
-            Uri myUri = Uri.parse(sAddr);
+            Uri myUri = Uri.parse("http://wvum.org:9010/");
 
             m_WVUMStream = new MediaPlayer();
             m_WVUMStream.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -141,6 +160,21 @@ public class MainActivity extends ActionBarActivity
         ConnectivityManager connectivityManage = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManage.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void initTimer()
+    {
+        m_TimerHandler = new Handler();
+        m_TimerRunnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                new getDataAsyncTask().execute(m_sMetaDataLink);
+                m_TimerHandler.postDelayed(this, m_nPollTime);
+            }
+        };
+        m_TimerHandler.postDelayed(m_TimerRunnable, 0);
     }
 
     @Override
