@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
@@ -13,6 +14,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,6 +45,9 @@ import java.util.Timer;
 
 public class MainActivity extends ActionBarActivity
 {
+    public static final String KEY_PREF_UPDATERATE = "updateFrequency";
+    public static final String KEY_PREF_OFFSREEN = "offscreenStreaming";
+    private static final int SETTINGS_RESULT = 1;
     //member variables
     //data
     private String m_sMetaDataStart;
@@ -59,6 +65,7 @@ public class MainActivity extends ActionBarActivity
     private songInfoStore m_SongData;
     private Handler m_TimerHandler;
     private Runnable m_TimerRunnable;
+    private SharedPreferences m_Prefs;
 
     //methods
 
@@ -80,10 +87,12 @@ public class MainActivity extends ActionBarActivity
         m_TimerHandler = null;
         m_TimerRunnable = null;
         m_WVUMStream = null;
+        m_Prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         if(isNetworkAvailable())
         {
             //initialize streams
+            new getDataAsyncTask().execute(m_sMetaDataLink);
             initAudioStream();
         }
         else
@@ -104,6 +113,7 @@ public class MainActivity extends ActionBarActivity
     protected void onResume()
     {
         super.onResume();
+        getValuesFromPrefs();
         initTimer();
         if(!isNetworkAvailable())
             Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG).show();
@@ -117,6 +127,7 @@ public class MainActivity extends ActionBarActivity
         m_WVUMStream.stop();
     }
 
+    //User methods
     private void initGUI()
     {
         m_PlayButton = (ImageButton)findViewById(R.id.playButton);
@@ -235,6 +246,20 @@ public class MainActivity extends ActionBarActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        getValuesFromPrefs();
+    }
+
+    private void getValuesFromPrefs()
+    {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String s = sharedPreferences.getString("updateFrequency", "");
+        m_nPollTime = Integer.parseInt(s);
     }
 
     //Async Class for getting data from stream

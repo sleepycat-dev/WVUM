@@ -9,7 +9,7 @@
     <ListPreference     android:title="Metadata Update Frequency"
                         android:summary="Select the frequency at which you would like the app to poll for new song data"
                         android:key="updateFrequency"
-                        android:defaultValue="-1"
+                        android:defaultValue="30000"
                         android:entries="@array/poll_names"
                         android:entryValues="@array/poll_times" />
 
