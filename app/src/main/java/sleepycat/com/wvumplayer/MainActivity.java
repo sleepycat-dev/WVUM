@@ -17,6 +17,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.util.Log;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.client.methods.HttpGet;
@@ -43,8 +45,9 @@ public class MainActivity extends ActionBarActivity
     boolean m_bIsReady;
     //objects
     MediaPlayer m_WVUMStream;
-    Button m_PlayButton;
-    Button m_StopButton;
+    ImageButton m_PlayButton;
+    ImageButton m_StopButton;
+    TextView m_SongData;
 
     //methods
     @Override
@@ -61,11 +64,11 @@ public class MainActivity extends ActionBarActivity
 
         //initialize streams
         initAudioStream();
-        new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
+        //new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
 
         //initialize GUI elements
-        m_PlayButton = (Button)findViewById(R.id.playButton);
-        m_StopButton = (Button)findViewById(R.id.stopButton);
+        m_PlayButton = (ImageButton)findViewById(R.id.playButton);
+        m_StopButton = (ImageButton)findViewById(R.id.stopButton);
 
         //GUI Listeners
         m_PlayButton.setOnClickListener(new View.OnClickListener()
@@ -77,6 +80,7 @@ public class MainActivity extends ActionBarActivity
                 {
                     if (isNetworkAvailable())
                     {
+                        new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
                         m_WVUMStream.start();
                     }
                     else
@@ -179,6 +183,7 @@ public class MainActivity extends ActionBarActivity
                     {
                         //+4 is because of escaped characters
                         inputLine = trimString(inputLine);
+                        m_SongData.setText(inputLine);
                         break;
                     }
                 }
