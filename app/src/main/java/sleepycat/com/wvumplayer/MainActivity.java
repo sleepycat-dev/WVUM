@@ -1,8 +1,11 @@
 package sleepycat.com.wvumplayer;
 
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
@@ -57,8 +60,9 @@ public class MainActivity extends ActionBarActivity
     private Handler m_TimerHandler;
     private Runnable m_TimerRunnable;
 
-
     //methods
+
+    //Overridden methods
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -81,12 +85,35 @@ public class MainActivity extends ActionBarActivity
         {
             //initialize streams
             initAudioStream();
-            initTimer();
         }
         else
-            Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG);
+            Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG).show();
         //initialize GUI elements
         initGUI();
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        m_TimerHandler.removeCallbacks(m_TimerRunnable);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        initTimer();
+        if(!isNetworkAvailable())
+            Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        m_TimerHandler.removeCallbacks(m_TimerRunnable);
+        m_WVUMStream.stop();
     }
 
     private void initGUI()
@@ -102,14 +129,18 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
-                if(m_bIsReady && m_WVUMStream != null)
+                if(m_bIsReady)
                 {
                     if (isNetworkAvailable())
                     {
+                        if(m_WVUMStream == null)
+                            initAudioStream();
                         m_WVUMStream.start();
+                        new getDataAsyncTask().execute(m_sMetaDataLink);
+
                     }
                     else
-                        Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again.", Toast.LENGTH_LONG);
+                        Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again.", Toast.LENGTH_LONG).show();
                 }
                 else
                     Log.d("m_PlayButton", "STREAM NOT READY");
@@ -170,7 +201,8 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void run()
             {
-                new getDataAsyncTask().execute(m_sMetaDataLink);
+                if(isNetworkAvailable())
+                    new getDataAsyncTask().execute(m_sMetaDataLink);
                 m_TimerHandler.postDelayed(this, m_nPollTime);
             }
         };
