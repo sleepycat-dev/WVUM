@@ -96,7 +96,8 @@ public class MainActivity extends ActionBarActivity
     protected void onPause()
     {
         super.onPause();
-        m_TimerHandler.removeCallbacks(m_TimerRunnable);
+        m_WVUMStream.stop();
+        m_TimerHandler.removeCallbacks(null);
     }
 
     @Override
@@ -112,7 +113,7 @@ public class MainActivity extends ActionBarActivity
     protected void onStop()
     {
         super.onStop();
-        m_TimerHandler.removeCallbacks(m_TimerRunnable);
+        m_TimerHandler.removeCallbacks(null);
         m_WVUMStream.stop();
     }
 
