@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,18 +21,25 @@ import android.widget.Toast;
 
 import org.apache.http.client.methods.HttpGet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends ActionBarActivity
 {
     //member variables
     //data
+    String m_sMetaDataStart;
+    String m_sMetaDataEnd;
+    String m_sSongData;
     boolean m_bIsReady;
     //objects
     MediaPlayer m_WVUMStream;
@@ -45,9 +53,15 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //initialize POD
+        m_sMetaDataStart = "<font face=\"calibri\"><!--includeThisInApp-->";
+        m_sMetaDataEnd = "</body></html></font>";
+        m_sSongData = "";
+        m_bIsReady = false;
+
         //initialize streams
         initAudioStream();
-        initDataStream();
+        new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
 
         //initialize GUI elements
         m_PlayButton = (Button)findViewById(R.id.playButton);
@@ -62,7 +76,9 @@ public class MainActivity extends ActionBarActivity
                 if(m_bIsReady)
                 {
                     if (isNetworkAvailable())
+                    {
                         m_WVUMStream.start();
+                    }
                     else
                         Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again", Toast.LENGTH_LONG);
                 }
@@ -111,68 +127,6 @@ public class MainActivity extends ActionBarActivity
         m_WVUMStream.prepareAsync();
     }
 
-    private void initDataStream()
-    {
-        //Initializations
-        String sAddr = "http://wvum.org:9010/";
-        String sUrl = "http://wvum.org/index.php/wvum/stream/";
-        URL dataURL = null;
-        URLConnection conn = null;
-        InputStream is = null;
-        int nMetaDataLength = 0;
-
-        try
-        {dataURL = new URL(sAddr);}
-        catch(MalformedURLException e)
-        {
-            //Do something...
-        }
-        try
-        {conn = dataURL.openConnection();}
-        catch(IOException e)
-        {
-            //Do something
-        }
-        conn.setRequestProperty("Icy-MetaData", "1");
-        int interval = Integer.valueOf(conn.getHeaderField("icy-metaint"));
-        try
-        {is = conn.getInputStream();}
-        catch(IOException e)
-        {
-            //do something
-        }
-
-        int skipped = 0;
-        while (skipped < interval)
-        {
-            try{skipped += is.skip(interval - skipped);}
-            catch(IOException e)
-            {/*do something*/}
-        }
-
-        try{nMetaDataLength = is.read() * 16;}
-        catch(IOException e)
-        {}
-
-        int bytesRead = 0;
-        int offset = 0;
-        byte[] bytes = new byte[nMetaDataLength];
-
-        while (bytesRead < nMetaDataLength && bytesRead != -1)
-        {
-            try{bytesRead = is.read(bytes, offset, nMetaDataLength);}
-            catch(IOException e){/*do something*/}
-            offset = bytesRead;
-        }
-
-        String metaData = new String(bytes).trim();
-        String title = metaData.substring(metaData.indexOf("StreamTitle='") + 13, metaData.indexOf(" / ", metaData.indexOf("StreamTitle='"))).trim();
-        String djName = metaData.substring(metaData.indexOf(" / ", metaData.indexOf("StreamTitle='")) + 3, metaData.indexOf("';", metaData.indexOf("StreamTitle='"))).trim();
-        Log.w("metadata", metaData);
-        try{is.close();}
-        catch(IOException e){}
-    }
-
     private boolean isNetworkAvailable()
     {
         ConnectivityManager connectivityManage = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -202,5 +156,51 @@ public class MainActivity extends ActionBarActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //Async Class for getting data
+    private class getDataAsyncTask extends AsyncTask<String, Void, Boolean>
+    {
+        @Override
+        protected Boolean doInBackground(String ... sURL)
+        {
+            //Initializations
+            URL mWVUM_URL = null;
+            BufferedReader mIn = null;
+
+            try
+            {
+                mWVUM_URL = new URL(sURL[0]);
+                mIn = new BufferedReader(new InputStreamReader(mWVUM_URL.openStream()));
+                String inputLine;
+                while ((inputLine = mIn.readLine()) != null)
+                {
+                    if(inputLine.contains(m_sMetaDataStart))
+                    {
+                        //+4 is because of escaped characters
+                        inputLine = trimString(inputLine);
+                        break;
+                    }
+                }
+                mIn.close();
+            }
+            catch (MalformedURLException e){}
+            catch (IOException e){}
+            return true;
+        }
+
+        private String trimString(String sInput)
+        {
+            String sResult = "";
+            //+4 is to make up for the two escaped quotation marks
+            int nLowerBound = m_sMetaDataStart.length() + 4;
+
+            while(sInput.charAt(nLowerBound) != '<')
+            {
+                sResult = sResult + sInput.charAt(nLowerBound);
+                nLowerBound++;
+            }
+            return sResult;
+        }
     }
 }
