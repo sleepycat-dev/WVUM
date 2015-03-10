@@ -47,7 +47,7 @@ public class MainActivity extends ActionBarActivity
     MediaPlayer m_WVUMStream;
     ImageButton m_PlayButton;
     ImageButton m_StopButton;
-    TextView m_SongData;
+    TextView m_SongDisplayLabel;
 
     //methods
     @Override
@@ -64,11 +64,12 @@ public class MainActivity extends ActionBarActivity
 
         //initialize streams
         initAudioStream();
-        //new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
+        new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
 
         //initialize GUI elements
         m_PlayButton = (ImageButton)findViewById(R.id.playButton);
         m_StopButton = (ImageButton)findViewById(R.id.stopButton);
+        m_SongDisplayLabel = (TextView)findViewById(R.id.songDataLabel);
 
         //GUI Listeners
         m_PlayButton.setOnClickListener(new View.OnClickListener()
@@ -80,7 +81,6 @@ public class MainActivity extends ActionBarActivity
                 {
                     if (isNetworkAvailable())
                     {
-                        new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
                         m_WVUMStream.start();
                     }
                     else
@@ -182,8 +182,7 @@ public class MainActivity extends ActionBarActivity
                     if(inputLine.contains(m_sMetaDataStart))
                     {
                         //+4 is because of escaped characters
-                        inputLine = trimString(inputLine);
-                        m_SongData.setText(inputLine);
+                        m_sSongData = trimString(inputLine);
                         break;
                     }
                 }
