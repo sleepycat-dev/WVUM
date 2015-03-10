@@ -213,9 +213,14 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void run()
             {
-                if(isNetworkAvailable())
-                    new getDataAsyncTask().execute(m_sMetaDataLink);
-                m_TimerHandler.postDelayed(this, m_nPollTime);
+                if(m_nPollTime > 0)
+                {
+                    if (isNetworkAvailable())
+                        new getDataAsyncTask().execute(m_sMetaDataLink);
+                    m_TimerHandler.postDelayed(this, m_nPollTime);
+                }
+                else
+                    m_SongDisplayLabel.setText("");
             }
         };
         m_TimerHandler.postDelayed(m_TimerRunnable, 0);
@@ -244,7 +249,12 @@ public class MainActivity extends ActionBarActivity
             startActivity(intent);
             return true;
         }
-
+        if(id == R.id.action_credits)
+        {
+            Intent intent = new Intent(getApplicationContext(),CreditsActivity.class);
+            startActivity(intent);
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -258,7 +268,7 @@ public class MainActivity extends ActionBarActivity
     private void getValuesFromPrefs()
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String s = sharedPreferences.getString("updateFrequency", "");
+        String s = sharedPreferences.getString("updateFrequency", "30000");
         m_nPollTime = Integer.parseInt(s);
     }
 
