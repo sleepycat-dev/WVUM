@@ -33,21 +33,24 @@ import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 
 
 public class MainActivity extends ActionBarActivity
 {
     //member variables
     //data
-    String m_sMetaDataStart;
-    String m_sMetaDataEnd;
-    String m_sSongData;
-    boolean m_bIsReady;
+    private String m_sMetaDataStart;
+    private String m_sMetaDataEnd;
+    private boolean m_bIsReady;
     //objects
-    MediaPlayer m_WVUMStream;
-    ImageButton m_PlayButton;
-    ImageButton m_StopButton;
-    TextView m_SongDisplayLabel;
+    private MediaPlayer m_WVUMStream;
+    private ImageButton m_PlayButton;
+    private ImageButton m_StopButton;
+    private songTextView m_SongDisplayLabel;
+    private songInfoStore m_SongData;
+    Timer m_PollStation;
+
 
     //methods
     @Override
@@ -56,22 +59,25 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //initialize POD
+        //initialize member variables
         m_sMetaDataStart = "<font face=\"calibri\"><!--includeThisInApp-->";
         m_sMetaDataEnd = "</body></html></font>";
-        m_sSongData = "";
+        m_SongData = new songInfoStore("");
         m_bIsReady = false;
+        m_PollStation = new Timer();
 
         //initialize streams
         initAudioStream();
+        //m_PollStation(runAsyncTask, 3000, 1500);
         new getDataAsyncTask().execute("http://wvum.org/index.php/wvum/stream/");
 
         //initialize GUI elements
         m_PlayButton = (ImageButton)findViewById(R.id.playButton);
         m_StopButton = (ImageButton)findViewById(R.id.stopButton);
-        m_SongDisplayLabel = (TextView)findViewById(R.id.songDataLabel);
+        m_SongDisplayLabel = (songTextView)findViewById(R.id.songDataLabel);
 
         //GUI Listeners
+        m_SongData.setListener(m_SongDisplayLabel);
         m_PlayButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -90,7 +96,6 @@ public class MainActivity extends ActionBarActivity
                     Log.d("m_PlayButton", "STREAM NOT READY");
             }
         });
-
         m_StopButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -162,8 +167,8 @@ public class MainActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-    //Async Class for getting data
-    private class getDataAsyncTask extends AsyncTask<String, Void, Boolean>
+    //Async Class for getting data from stream
+    private class getDataAsyncTask extends AsyncTask<String, String, Boolean>
     {
         @Override
         protected Boolean doInBackground(String ... sURL)
@@ -181,8 +186,8 @@ public class MainActivity extends ActionBarActivity
                 {
                     if(inputLine.contains(m_sMetaDataStart))
                     {
-                        //+4 is because of escaped characters
-                        m_sSongData = trimString(inputLine);
+                        inputLine = trimString(inputLine);
+                        publishProgress(inputLine);
                         break;
                     }
                 }
@@ -191,6 +196,12 @@ public class MainActivity extends ActionBarActivity
             catch (MalformedURLException e){}
             catch (IOException e){}
             return true;
+        }
+
+        protected void onProgressUpdate(String ... progress)
+        {
+            super.onProgressUpdate(progress);
+            m_SongData.setSongInfo(progress[0]);
         }
 
         private String trimString(String sInput)
