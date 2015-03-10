@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
     <CheckBoxPreference android:title="Offscreen streaming"
                         android:defaultValue="true"
                         android:summary="This option toggles whether the WVUM app will continue to stream audio while offscreen."
                         android:key="offscreenStreaming" />
+
     <ListPreference     android:title="Metadata Update Frequency"
                         android:summary="Select the frequency at which you would like the app to poll for new song data"
                         android:key="updateFrequency"
-                        android:defaultValue="2"
+                        android:defaultValue="-1"
                         android:entries="@array/poll_names"
                         android:entryValues="@array/poll_times" />
+
 </PreferenceScreen>

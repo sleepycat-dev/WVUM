@@ -8,11 +8,11 @@
         <item>IDGAF About Metadata!</item>
     </string-array>
 
-    <integer-array name="poll_times">
+    <string-array name="poll_times">
         <item>5000</item>
         <item>10000</item>
         <item>30000</item>
         <item>120000</item>
         <item>-1</item>
-    </integer-array>
+    </string-array>
 </resources>
