@@ -61,6 +61,7 @@ public class MainActivity extends ActionBarActivity
     private MediaPlayer m_WVUMStream;
     private ImageButton m_PlayButton;
     private ImageButton m_StopButton;
+    private ImageButton m_LogoButton;
     private songTextView m_SongDisplayLabel;
     private songInfoStore m_SongData;
     private Handler m_TimerHandler;
@@ -132,6 +133,7 @@ public class MainActivity extends ActionBarActivity
     {
         m_PlayButton = (ImageButton)findViewById(R.id.playButton);
         m_StopButton = (ImageButton)findViewById(R.id.stopButton);
+        m_LogoButton = (ImageButton)findViewById(R.id.wvumLogo);
         m_SongDisplayLabel = (songTextView)findViewById(R.id.songDataLabel);
 
         //GUI Listeners
@@ -165,6 +167,15 @@ public class MainActivity extends ActionBarActivity
             {
                 if(m_WVUMStream != null)
                     m_WVUMStream.stop();
+            }
+        });
+        m_LogoButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.wvum.org"));
+                startActivity(browserIntent);
             }
         });
     }
