@@ -25,6 +25,8 @@ import android.view.View;
 import android.widget.Button;
 import android.util.Log;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,6 +57,7 @@ public class MainActivity extends ActionBarActivity
     private String m_sSHOUTCastLink;
     private String m_sMetaDataLink;
     private boolean m_bDoRadio;
+    private boolean m_bToOtherActivity;
     //how long between asynctask calls in milliseconds
     private int m_nPollTime;
     private boolean m_bIsReady;
@@ -68,6 +71,7 @@ public class MainActivity extends ActionBarActivity
     private Handler m_TimerHandler;
     private Runnable m_TimerRunnable;
     private SharedPreferences m_Prefs;
+    private ProgressBar m_LoadingSpinner;
 
     //methods
 
@@ -85,6 +89,7 @@ public class MainActivity extends ActionBarActivity
         m_sMetaDataLink = "http://wvum.org/index.php/wvum/stream/";
         m_SongData = new songInfoStore("");
         m_bDoRadio = true;
+        m_bToOtherActivity = false;
         m_nPollTime = 30000;
         m_bIsReady = false;
         m_TimerHandler = null;
@@ -95,7 +100,6 @@ public class MainActivity extends ActionBarActivity
         if(isNetworkAvailable())
         {
             //initialize streams
-            new getDataAsyncTask().execute(m_sMetaDataLink);
             initAudioStream();
         }
         else
@@ -108,9 +112,7 @@ public class MainActivity extends ActionBarActivity
     protected void onPause()
     {
         super.onPause();
-        if(!m_bDoRadio)
-            m_WVUMStream.stop();
-        m_TimerHandler.removeCallbacks(null);
+        clearTimer();
     }
 
     @Override
@@ -118,6 +120,7 @@ public class MainActivity extends ActionBarActivity
     {
         super.onResume();
         getValuesFromPrefs();
+        m_bToOtherActivity = false;
         initTimer();
         if(!isNetworkAvailable())
             Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG).show();
@@ -127,18 +130,37 @@ public class MainActivity extends ActionBarActivity
     protected void onStop()
     {
         super.onStop();
-        m_TimerHandler.removeCallbacks(null);
+        if(!m_bDoRadio && !m_bToOtherActivity)
+        {
+            m_WVUMStream.stop();
+            m_bIsReady = false;
+            m_WVUMStream.release();
+            m_WVUMStream = null;
+        }
+        clearTimer();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
         m_WVUMStream.stop();
+        m_bIsReady = false;
+        m_WVUMStream.release();
+        m_WVUMStream = null;
+        clearTimer();
     }
 
     //User methods
     private void initGUI()
     {
+        m_LoadingSpinner = (ProgressBar)findViewById(R.id.loadingSpinner);
         m_PlayButton = (ImageButton)findViewById(R.id.playButton);
         m_StopButton = (ImageButton)findViewById(R.id.stopButton);
         m_LogoButton = (ImageButton)findViewById(R.id.wvumLogo);
         m_SongDisplayLabel = (songTextView)findViewById(R.id.songDataLabel);
 
+        m_LoadingSpinner.setVisibility(View.GONE);
         //GUI Listeners
         m_SongData.setListener(m_SongDisplayLabel);
         m_PlayButton.setOnClickListener(new View.OnClickListener()
@@ -146,21 +168,22 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
-                if(m_bIsReady)
+                if (isNetworkAvailable())
                 {
-                    if (isNetworkAvailable())
+                    if(m_WVUMStream == null)
+                        initAudioStream();
+                    if(!m_bIsReady)
                     {
-                        if(m_WVUMStream == null)
-                            initAudioStream();
-                        m_WVUMStream.start();
-                        new getDataAsyncTask().execute(m_sMetaDataLink);
-
+                        m_LoadingSpinner.setVisibility(View.VISIBLE);
+                        m_WVUMStream.prepareAsync();
                     }
                     else
-                        Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again.", Toast.LENGTH_LONG).show();
+                        m_WVUMStream.start();
+                    if(m_nPollTime != -1)
+                        new getDataAsyncTask().execute(m_sMetaDataLink);
                 }
                 else
-                    Log.d("m_PlayButton", "STREAM NOT READY");
+                    Toast.makeText(getApplicationContext(), "Please connect to the Internet and try again.", Toast.LENGTH_LONG).show();
             }
         });
         m_StopButton.setOnClickListener(new View.OnClickListener()
@@ -169,7 +192,10 @@ public class MainActivity extends ActionBarActivity
             public void onClick(View v)
             {
                 if(m_WVUMStream != null)
+                {
+                    m_bIsReady = false;
                     m_WVUMStream.stop();
+                }
             }
         });
         m_LogoButton.setOnClickListener(new View.OnClickListener()
@@ -198,7 +224,7 @@ public class MainActivity extends ActionBarActivity
             }
             catch (IOException e)
             {
-                Log.d("IOEXCEPTION", "WHY IS THIS BROKEN", e);
+                Log.d("IOEXCEPTION", e.getMessage());
             }
         }
         //set listener so play/stop functionality can check for valid stream
@@ -206,10 +232,13 @@ public class MainActivity extends ActionBarActivity
         {
             public void onPrepared(MediaPlayer mp)
             {
+
+                m_WVUMStream.start();
+                m_LoadingSpinner.setVisibility(View.GONE);
                 m_bIsReady = true;
             }
         });
-        m_WVUMStream.prepareAsync();
+        //m_WVUMStream.prepareAsync();
     }
 
     private boolean isNetworkAvailable()
@@ -217,6 +246,13 @@ public class MainActivity extends ActionBarActivity
         ConnectivityManager connectivityManage = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManage.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void clearTimer()
+    {
+        m_TimerHandler.removeCallbacks(null);
+        //m_TimerRunnable = null;
+        //m_TimerHandler = null;
     }
 
     private void initTimer()
@@ -259,12 +295,14 @@ public class MainActivity extends ActionBarActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
+            m_bToOtherActivity = true;
             Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
             startActivity(intent);
             return true;
         }
         if(id == R.id.action_credits)
         {
+            m_bToOtherActivity = true;
             Intent intent = new Intent(getApplicationContext(),CreditsActivity.class);
             startActivity(intent);
             return true;

@@ -1,9 +1,13 @@
 package sleepycat.com.wvumplayer;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -23,6 +27,8 @@ public class CreditsActivity extends ActionBarActivity
     //members
     private static final String ABOUT_URL = "http://www.wvum.org/index.php/info/aboutus/";
     private static final String PROFILE_URL = "http://www.wvum.org/index.php/wvum/profile/";
+    Button m_DevButt;
+    Button m_NameButt;
     TextView m_Staff;
     List<String> m_StaffNames;
     String[] m_Positions = {"General Manager", "Program Director", "Training Director", "Underwriting Director",
@@ -33,10 +39,33 @@ public class CreditsActivity extends ActionBarActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        m_StaffNames = new ArrayList<String>();
         setContentView(R.layout.activity_credits);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        m_DevButt = (Button)findViewById(R.id.devButt);
+        m_NameButt = (Button)findViewById(R.id.nameButt);
+        m_StaffNames = new ArrayList<String>();
         m_Staff = (TextView)findViewById(R.id.currentStaff);
         new getDataAsyncTask().execute("");
+
+        m_DevButt.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.davissprague.com"));
+                startActivity(browserIntent);
+            }
+        });
+
+        m_NameButt.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.davissprague.com"));
+                startActivity(browserIntent);
+            }
+        });
     }
 
     private class getDataAsyncTask extends AsyncTask<String, String, Boolean>

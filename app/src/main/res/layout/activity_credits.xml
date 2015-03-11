@@ -18,26 +18,32 @@
             android:layout_height="match_parent"
             android:layout_weight="1.0">
 
-            <TextView
+            <Button
+                android:id="@+id/devButt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Developer :"
-                android:gravity="center"
+                android:text="@string/devtitle"
+                android:textAllCaps="false"
                 android:layout_gravity="center"
                 android:textColor="#ff000000"
+                android:background="@null"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
 
-            <TextView
+            <Button
+                android:id="@+id/nameButt"
+                android:textAllCaps="false"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#ff000000"
-                android:text="\nDavisSprague\nwww.davissprague.com\n"
+                android:background="@null"
+                android:text="@string/name"
                 android:gravity="center"
                 android:layout_gravity="center"/>
 
             <TextView
                 android:layout_width="wrap_content"
+
                 android:layout_height="wrap_content"
                 android:textColor="#ff000000"
                 android:text="Staff : "
