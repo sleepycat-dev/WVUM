@@ -54,6 +54,7 @@ public class MainActivity extends ActionBarActivity
     private String m_sMetaDataEnd;
     private String m_sSHOUTCastLink;
     private String m_sMetaDataLink;
+    private boolean m_bDoRadio;
     //how long between asynctask calls in milliseconds
     private int m_nPollTime;
     private boolean m_bIsReady;
@@ -83,6 +84,7 @@ public class MainActivity extends ActionBarActivity
         m_sSHOUTCastLink = "http://wvum.org:9010/";
         m_sMetaDataLink = "http://wvum.org/index.php/wvum/stream/";
         m_SongData = new songInfoStore("");
+        m_bDoRadio = true;
         m_nPollTime = 30000;
         m_bIsReady = false;
         m_TimerHandler = null;
@@ -106,7 +108,8 @@ public class MainActivity extends ActionBarActivity
     protected void onPause()
     {
         super.onPause();
-        m_WVUMStream.stop();
+        if(!m_bDoRadio)
+            m_WVUMStream.stop();
         m_TimerHandler.removeCallbacks(null);
     }
 
@@ -281,6 +284,8 @@ public class MainActivity extends ActionBarActivity
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String s = sharedPreferences.getString("updateFrequency", "30000");
         m_nPollTime = Integer.parseInt(s);
+        boolean b = sharedPreferences.getBoolean("offscreenStreaming", true);
+        m_bDoRadio = b;
     }
 
     //Async Class for getting data from stream
