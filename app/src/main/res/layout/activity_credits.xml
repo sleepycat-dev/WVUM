@@ -3,24 +3,59 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Developer : \nDavisSprague\nwww.davissprague.com"
-        android:gravity="center"
-        android:layout_gravity="center"/>
 
-    <TextView
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:layout_marginTop="5sp"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Staff : "
-        android:layout_gravity="center"/>
+        android:id="@+id/scroller"
+        android:scrollbars="vertical"
+        android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_gravity="center"
-        android:id="@+id/currentStaff"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1.0">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Developer :"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:textColor="#ff000000"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ff000000"
+                android:text="\nDavisSprague\nwww.davissprague.com\n"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ff000000"
+                android:text="Staff : "
+                android:layout_gravity="center"
+                android:textIsSelectable="true"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#ff000000"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:id="@+id/currentStaff"/>
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>

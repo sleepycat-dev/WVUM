@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Davis on 3/10/2015.
@@ -22,13 +24,16 @@ public class CreditsActivity extends ActionBarActivity
     private static final String ABOUT_URL = "http://www.wvum.org/index.php/info/aboutus/";
     private static final String PROFILE_URL = "http://www.wvum.org/index.php/wvum/profile/";
     TextView m_Staff;
-    String m_StaffNames;
+    List<String> m_StaffNames;
+    String[] m_Positions = {"General Manager", "Program Director", "Training Director", "Underwriting Director",
+            "Campus Affairs Director", "Sports Director", "Engineer", "PSA Director", "Music Director", "Music Director",
+            "Public Relations/Promotions Director", "Webmaster", "Office Manager", "Digital Music Supervisor"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        m_StaffNames = "";
+        m_StaffNames = new ArrayList<String>();
         setContentView(R.layout.activity_credits);
         m_Staff = (TextView)findViewById(R.id.currentStaff);
         new getDataAsyncTask().execute("");
@@ -55,14 +60,17 @@ public class CreditsActivity extends ActionBarActivity
                         inputLine = trimString(inputLine);
                         Log.d("parsing URL ... ", inputLine);
                         if(inputLine.length() > 1)
-                            m_StaffNames = m_StaffNames + "\n" + inputLine;
+                            m_StaffNames.add(inputLine);
                     }
                 }
                 mIn.close();
             }
             catch (MalformedURLException e){}
             catch (IOException e){}
-            publishProgress(m_StaffNames);
+            String sResult = "";
+            for(int i = 0; i < m_StaffNames.size(); i++)
+                sResult = sResult + "\n" + m_Positions[i] + "\n" + m_StaffNames.get(i) + "\n";
+            publishProgress(sResult);
             return true;
         }
 
