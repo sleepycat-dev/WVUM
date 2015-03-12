@@ -1,6 +1,7 @@
 package sleepycat.com.wvumplayer;
 
 import android.app.DownloadManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,11 +27,13 @@ import android.widget.Button;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.client.methods.HttpGet;
+import org.w3c.dom.Node;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,6 +45,7 @@ import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Timer;
 
 
@@ -58,6 +62,7 @@ public class MainActivity extends ActionBarActivity
     private String m_sMetaDataLink;
     private boolean m_bDoRadio;
     private boolean m_bToOtherActivity;
+    public Queue<String> m_MovementStack;
     //how long between asynctask calls in milliseconds
     private int m_nPollTime;
     private boolean m_bIsReady;
@@ -66,12 +71,14 @@ public class MainActivity extends ActionBarActivity
     private ImageButton m_PlayButton;
     private ImageButton m_StopButton;
     private ImageButton m_LogoButton;
+    private RelativeLayout m_Layout;
     private songTextView m_SongDisplayLabel;
     private songInfoStore m_SongData;
     private Handler m_TimerHandler;
     private Runnable m_TimerRunnable;
     private SharedPreferences m_Prefs;
     private ProgressBar m_LoadingSpinner;
+    private ActivitySwipeDetector m_Swiper;
 
     //methods
 
@@ -95,6 +102,8 @@ public class MainActivity extends ActionBarActivity
         m_TimerHandler = null;
         m_TimerRunnable = null;
         m_WVUMStream = null;
+        m_MovementStack = new LinkedList<>();
+        m_Swiper = new ActivitySwipeDetector(this);
         m_Prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         if(isNetworkAvailable())
@@ -159,6 +168,8 @@ public class MainActivity extends ActionBarActivity
         m_StopButton = (ImageButton)findViewById(R.id.stopButton);
         m_LogoButton = (ImageButton)findViewById(R.id.wvumLogo);
         m_SongDisplayLabel = (songTextView)findViewById(R.id.songDataLabel);
+        m_Layout = (RelativeLayout)findViewById(R.id.layout);
+        m_Layout.setOnTouchListener(m_Swiper);
 
         m_LoadingSpinner.setVisibility(View.GONE);
         //GUI Listeners
@@ -168,6 +179,7 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
+                addToStack("P");
                 if (isNetworkAvailable())
                 {
                     if(m_WVUMStream == null)
@@ -192,6 +204,7 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
+                addToStack("S");
                 if(m_bIsReady)
                 {
                     m_bIsReady = false;
@@ -323,6 +336,38 @@ public class MainActivity extends ActionBarActivity
         m_nPollTime = Integer.parseInt(s);
         boolean b = sharedPreferences.getBoolean("offscreenStreaming", true);
         m_bDoRadio = b;
+    }
+
+    public void addToStack(String sMove)
+    {
+        String sArr = "UUDDLRLRPSPS";
+        String sStackString = "";
+        if(m_MovementStack.size() == 12)
+        {
+            m_MovementStack.remove();
+            m_MovementStack.add(sMove);
+        }
+        else
+            m_MovementStack.add(sMove);
+
+        for(String s : m_MovementStack)
+            sStackString = sStackString + s.toString();
+
+        if(sArr.equals(sStackString))
+        {
+            try
+            {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://dQw4w9WgXcQ"));
+                intent.putExtra("force_fullscreen", true);
+                startActivity(intent);
+            }
+            catch(ActivityNotFoundException ex)
+            {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                intent.putExtra("force_fullscreen", true);
+                startActivity(intent);
+            }
+        }
     }
 
     //Async Class for getting data from stream
