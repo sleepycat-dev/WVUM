@@ -1,14 +1,20 @@
 package sleepycat.com.wvumplayer;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -68,6 +74,26 @@ public class CreditsActivity extends ActionBarActivity
         });
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private boolean isNetworkAvailable()
+    {
+        ConnectivityManager connectivityManage = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManage.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
     private class getDataAsyncTask extends AsyncTask<String, String, Boolean>
     {
         @Override
@@ -79,20 +105,23 @@ public class CreditsActivity extends ActionBarActivity
 
             try
             {
-                mWVUM_URL = new URL(ABOUT_URL);
-                mIn = new BufferedReader(new InputStreamReader(mWVUM_URL.openStream()));
-                String inputLine;
-                while ((inputLine = mIn.readLine()) != null)
+                if(isNetworkAvailable())
                 {
-                    if(inputLine.contains(PROFILE_URL))
-                    {
-                        inputLine = trimString(inputLine);
-                        Log.d("parsing URL ... ", inputLine);
-                        if(inputLine.length() > 1)
-                            m_StaffNames.add(inputLine);
+                    mWVUM_URL = new URL(ABOUT_URL);
+                    mIn = new BufferedReader(new InputStreamReader(mWVUM_URL.openStream()));
+                    String inputLine;
+                    while ((inputLine = mIn.readLine()) != null) {
+                        if (inputLine.contains(PROFILE_URL)) {
+                            inputLine = trimString(inputLine);
+                            Log.d("parsing URL ... ", inputLine);
+                            if (inputLine.length() > 1)
+                                m_StaffNames.add(inputLine);
+                        }
                     }
+                    mIn.close();
                 }
-                mIn.close();
+                else
+                    Toast.makeText(getApplicationContext(), "Please connect to the Internet.", Toast.LENGTH_LONG).show();
             }
             catch (MalformedURLException e){}
             catch (IOException e){}

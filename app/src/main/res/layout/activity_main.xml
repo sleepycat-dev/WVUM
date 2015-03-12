@@ -39,32 +39,35 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/songDataLabel"
-        android:layout_marginBottom="10sp"/>
+        android:layout_below="@+id/songDataLabel"/>
 
    <LinearLayout
        android:layout_width="match_parent"
-       android:layout_height="100sp"
+       android:layout_height="wrap_content"
        android:layout_marginBottom="10sp"
+       android:layout_alignLeft="@id/wvumLogo"
+       android:layout_alignRight="@id/wvumLogo"
        android:layout_alignParentBottom="true"
        android:layout_centerHorizontal="true"
        android:gravity="center_horizontal">
 
        <ImageButton
+        android:layout_weight="1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/playButton"
         android:scaleType="fitXY"
         android:adjustViewBounds="true"
         android:background="@null"
-        android:src="@mipmap/startbutton"
+        android:src="@drawable/play_selector"
         android:clickable="true"/>
 
        <ImageButton
+           android:layout_weight="1"
            android:id="@+id/stopButton"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:src="@mipmap/stopbutton"
+           android:src="@drawable/stop_selector"
            android:scaleType="fitXY"
            android:adjustViewBounds="true"
            android:background="@null"

@@ -174,6 +174,7 @@ public class MainActivity extends ActionBarActivity
                         initAudioStream();
                     if(!m_bIsReady)
                     {
+                        m_SongDisplayLabel.setVisibility(View.GONE);
                         m_LoadingSpinner.setVisibility(View.VISIBLE);
                         m_WVUMStream.prepareAsync();
                     }
@@ -191,7 +192,7 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
-                if(m_WVUMStream != null)
+                if(m_bIsReady)
                 {
                     m_bIsReady = false;
                     m_WVUMStream.stop();
@@ -232,7 +233,7 @@ public class MainActivity extends ActionBarActivity
         {
             public void onPrepared(MediaPlayer mp)
             {
-
+                m_SongDisplayLabel.setVisibility(View.VISIBLE);
                 m_WVUMStream.start();
                 m_LoadingSpinner.setVisibility(View.GONE);
                 m_bIsReady = true;
@@ -251,8 +252,6 @@ public class MainActivity extends ActionBarActivity
     private void clearTimer()
     {
         m_TimerHandler.removeCallbacks(null);
-        //m_TimerRunnable = null;
-        //m_TimerHandler = null;
     }
 
     private void initTimer()
