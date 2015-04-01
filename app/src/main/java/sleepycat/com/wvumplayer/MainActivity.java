@@ -60,6 +60,7 @@ public class MainActivity extends ActionBarActivity
     private String m_sMetaDataEnd;
     private String m_sSHOUTCastLink;
     private String m_sMetaDataLink;
+    private boolean m_bClicked;
     private boolean m_bDoRadio;
     private boolean m_bToOtherActivity;
     public Queue<String> m_MovementStack;
@@ -96,6 +97,7 @@ public class MainActivity extends ActionBarActivity
         m_sMetaDataLink = "http://wvum.org/index.php/wvum/stream/";
         m_SongData = new songInfoStore("");
         m_bDoRadio = true;
+        m_bClicked = false;
         m_bToOtherActivity = false;
         m_nPollTime = 30000;
         m_bIsReady = false;
@@ -184,14 +186,13 @@ public class MainActivity extends ActionBarActivity
                 {
                     if(m_WVUMStream == null)
                         initAudioStream();
-                    if(!m_bIsReady)
+                    if(!m_bIsReady && !m_bClicked)
                     {
+                        m_bClicked = true;
                         m_SongDisplayLabel.setVisibility(View.GONE);
                         m_LoadingSpinner.setVisibility(View.VISIBLE);
                         m_WVUMStream.prepareAsync();
                     }
-                    else
-                        m_WVUMStream.start();
                     if(m_nPollTime != -1)
                         new getDataAsyncTask().execute(m_sMetaDataLink);
                 }
@@ -248,6 +249,7 @@ public class MainActivity extends ActionBarActivity
             {
                 m_SongDisplayLabel.setVisibility(View.VISIBLE);
                 m_WVUMStream.start();
+                m_bClicked = false;
                 m_LoadingSpinner.setVisibility(View.GONE);
                 m_bIsReady = true;
             }

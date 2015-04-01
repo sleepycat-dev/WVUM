@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="poll_names">
-        <item>I Need to Know</item>
-        <item>I Would Like to Know</item>
-        <item>I Will Check Once In A While</item>
-        <item>I Will Barely Ever Check</item>
-        <item>IDGAF About Metadata!</item>
+        <item>Frequent</item>
+        <item>Less Frequent</item>
+        <item>Occasionally</item>
+        <item>Sometimes</item>
+        <item>Never(!)</item>
     </string-array>
 
     <string-array name="poll_times">
