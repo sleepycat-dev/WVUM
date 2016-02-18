@@ -91,10 +91,10 @@ public class MainActivity extends ActionBarActivity
         setContentView(R.layout.activity_main);
 
         //initialize member variables
-        m_sMetaDataStart = "<font face=\"calibri\"><!--includeThisInApp-->";
+        m_sMetaDataStart = "<!--includeThisInApp-->";
         m_sMetaDataEnd = "</body></html></font>";
-        m_sSHOUTCastLink = "http://wvum.org:9010/";
-        m_sMetaDataLink = "http://wvum.org/index.php/wvum/stream/";
+        m_sSHOUTCastLink = "http://wvum.org:9010/stream";
+        m_sMetaDataLink = "http://wvum.org/web-player";
         m_SongData = new songInfoStore("");
         m_bDoRadio = true;
         m_bClicked = false;
@@ -211,6 +211,13 @@ public class MainActivity extends ActionBarActivity
                     m_bIsReady = false;
                     m_WVUMStream.stop();
                 }
+                else
+                {
+                    m_LoadingSpinner.setVisibility(View.GONE);
+                    m_WVUMStream.reset();
+                    m_bClicked = false;
+                    initAudioStream();
+                }
             }
         });
         m_LogoButton.setOnClickListener(new View.OnClickListener()
@@ -229,7 +236,7 @@ public class MainActivity extends ActionBarActivity
         if(isNetworkAvailable())
         {
             //Address of wvum stream. Parse into uri and hand to media player
-            Uri myUri = Uri.parse("http://wvum.org:9010/");
+            Uri myUri = Uri.parse("http://wvum.org:9010/stream");
 
             m_WVUMStream = new MediaPlayer();
             m_WVUMStream.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -413,8 +420,8 @@ public class MainActivity extends ActionBarActivity
         {
             String sResult = "";
             //+4 is to make up for the two escaped quotation marks
-            int nLowerBound = m_sMetaDataStart.length() + 4;
-
+            int nLowerBound = sInput.indexOf(m_sMetaDataStart); //m_sMetaDataStart.length() + 4;
+            nLowerBound += m_sMetaDataStart.length();
             while(sInput.charAt(nLowerBound) != '<')
             {
                 sResult = sResult + sInput.charAt(nLowerBound);

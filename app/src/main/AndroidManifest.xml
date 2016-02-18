@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.1" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="sleepycat.com.wvumplayer" >
 
@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.NETWORK" />
     <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:allowBackup="true"
